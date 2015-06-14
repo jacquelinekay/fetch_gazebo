@@ -99,7 +99,7 @@ void FetchGazeboPlugin::Init()
   urdf::Model urdfmodel;
   if (!urdfmodel.initParam("robot_description"))
   {
-    ROS_ERROR("Failed to parse URDF");  
+    ROS_ERROR("Failed to parse URDF");
   }
 
   // Init joint handles
@@ -108,10 +108,18 @@ void FetchGazeboPlugin::Init()
   {
     //get effort limit and continuous state from URDF
     boost::shared_ptr<const urdf::Joint> urdf_joint = urdfmodel.getJoint((*it)->GetName());
+    //assert(urdf_joint != NULL);
+    if (urdf_joint == NULL)
+    {
+      // Possible race condition in URDF loader?
+      ROS_ERROR("Gazebo joint missing in URDF model, skipping");
+      continue;
+    }
 
-    JointHandlePtr handle(new JointHandle(*it, 
+    JointHandlePtr handle(new JointHandle(*it,
                                           urdf_joint->limits->effort,
                                           (urdf_joint->type == urdf::Joint::CONTINUOUS)));
+    assert(handle != NULL);
     joints_.push_back(handle);
     robot_controllers::JointHandlePtr h(handle);
     controller_manager_.addJointHandle(h);
@@ -145,7 +153,10 @@ void FetchGazeboPlugin::OnUpdate(
 
   // Update joints back into Gazebo
   for (size_t i = 0; i < joints_.size(); ++i)
+  {
+    assert(joints_[i] != NULL);
     joints_[i]->update(now, ros::Duration(dt));
+  }
 
   // Limit publish rate
   if (now - last_publish_ < ros::Duration(0.01))

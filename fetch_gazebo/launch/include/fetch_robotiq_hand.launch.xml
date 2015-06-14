@@ -4,7 +4,7 @@
   <arg name="y" default="0.0" />
 
   <!-- Setup controllers -->
-  <!-- <rosparam file="$(find fetch_gazebo)/config/default_controllers.yaml" command="load" /> -->
+  <rosparam file="$(find fetch_gazebo)/config/default_controllers_robotiq_hand.yaml" command="load" />
 
   <!-- URDF and TF support -->
   <param name="robot_description" command="$(find xacro)/xacro.py $(find fetch_gazebo)/robots/fetch_robotiq_hands.gazebo.xacro" />
